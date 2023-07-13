@@ -1,0 +1,3 @@
+No.0, nodes : 25000, edges : 33317
+          cut : 13277No.1, nodes : 25000, edges : 32064
+          cut : 13277

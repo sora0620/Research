@@ -1,0 +1,4 @@
+  node o_rank o_in o_out p_rank p_in p_out
+  1920      7   30     0      2    9     0
+  5215     10   24     1      3   10     0
+  2049     21   19    23      1    8    11

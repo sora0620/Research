@@ -1,0 +1,11 @@
+No.0, nodes : 12500, edges : 5592
+          cut : 57350No.1, nodes : 12500, edges : 5366
+          cut : 58111No.2, nodes : 12500, edges : 9910
+          cut : 11169No.3, nodes : 12500, edges : 10412
+          cut : 10663No.4, nodes : 12500, edges : 10836
+          cut : 10472No.5, nodes : 12500, edges : 7975
+          cut : 11923No.6, nodes : 6250, edges : 28409
+          cut : 128625No.7, nodes : 6250, edges : 6535
+          cut : 116008No.8, nodes : 6250, edges : 22343
+          cut : 258855No.9, nodes : 6250, edges : 631378
+          cut : 478582

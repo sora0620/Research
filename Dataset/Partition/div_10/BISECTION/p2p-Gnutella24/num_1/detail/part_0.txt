@@ -1,0 +1,4 @@
+  node o_rank o_in o_out p_rank p_in p_out
+   218      2   45     0      1   14     0
+  4650     20   20     2      3    5     2
+  8475     22    3     0      2    2     0

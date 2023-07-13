@@ -1,0 +1,11 @@
+p2p-Gnutella24.adjlist, node : 26518, edge : 65369, clustering : 0.0027512506162165303
+NotreDame.adjlist, node : 100000, edge : 444094, clustering : 0.17273993573948793
+wiki-Talk.adjlist, node : 100000, edge : 1309635, clustering : 0.05643193905196817
+soc-Epinions1.adjlist, node : 75879, edge : 508837, clustering : 0.11017387558244732
+wiki-Vote.adjlist, node : 7115, edge : 103689, clustering : 0.08156344522820946
+amazon0601.adjlist, node : 100000, edge : 840626, clustering : 0.44075203103474375
+scale_free.adjlist, node : 50000, edge : 78658, clustering : 0.022099463032682187
+scale_free_2.adjlist, node : 50000, edge : 100831, clustering : 0.08054771474743527
+web-Google.adjlist, node : 100000, edge : 635840, clustering : 0.4191223554394432
+slashdot.adjlist, node : 77360, edge : 905468, clustering : 0.053176295275220456
+Stanford.adjlist, node : 100000, edge : 1059832, clustering : 0.42506261644284415
