@@ -7,3 +7,5 @@
 /Code/tullys
 .DS_Store
 practice.py
+env
+__pycache__
