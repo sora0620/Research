@@ -1,7 +1,8 @@
 # "/" を初めにつけると、.gitignore をカレントディレクトリとしてファイル or ディレクトリを指定するが、
 # つけないと、.gitignore 以下にある同名のファイル全てを無視するらしいので注意
 
-/Dataset
+# /Dataset
+/Dataset/Origin
 /Picture
 /Code/takishi
 /Code/tullys
