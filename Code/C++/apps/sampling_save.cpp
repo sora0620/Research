@@ -166,10 +166,10 @@ int main(int argc, char* argv[])
     // int border_ver = 1;
     // vector<string> rate_vec = {"0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1"};
     vector<string> rate_vec = {"0.01", "0.02", "0.03", "0.04", "0.05", "0.06", "0.07", "0.08", "0.09"};
-    int weight_node_num = 100;
+    int weight_node_num = 500; // 境界ノード数
     int weight_range = 100; // 境界ノードの重み幅
     int default_weight = 50; // 基本の重み
-    int sampling_num = 10; // 何回分保存するか
+    int sampling_num = 5; // 何回分保存するか
 
     // 実装
     Graph origin_graph(graph_name);
@@ -182,7 +182,7 @@ int main(int argc, char* argv[])
         vector<int> connect_node_vec = return_connect_node_vec(border_type, weight_node_num, i);
         vector<int> weight_vec = return_weight(connect_node_vec, weight_range, default_weight);
         for (string rate_str : rate_vec) {
-            string save_folder = "../../../Dataset/FC/" + rate_str;
+            string save_folder = "../../../Dataset/FC/境界ノード_" + to_string(weight_node_num) + "/" + rate_str;
             double rate = stod(rate_str);
             Graph sampling_graph = return_sampling_graph(origin_graph, connect_node_vec, rate, sampling, weight_vec, default_weight, random_walk_num);
             write_adjlist(sampling_graph, connect_node_vec, save_folder, i);
