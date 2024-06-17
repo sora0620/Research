@@ -163,11 +163,10 @@ int main(int argc, char* argv[])
     string graph_name = "soc-Epinions1";
     string sampling = "FC";
     string border_type = "prefer";
-    // int border_ver = 1;
     // vector<string> rate_vec = {"0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1"};
     vector<string> rate_vec = {"0.9"};
     // vector<string> rate_vec = {"0.01", "0.02", "0.03", "0.04", "0.05", "0.06", "0.07", "0.08", "0.09"};
-    int weight_node_num = 100; // 境界ノード数
+    int weight_node_num = 50; // 境界ノード数
     int weight_range = 100; // 境界ノードの重み幅
     int default_weight = 50; // 基本の重み
     int sampling_num = 5; // 何回分保存するか
