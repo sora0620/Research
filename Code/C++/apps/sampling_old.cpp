@@ -20,6 +20,8 @@
 
 using namespace std;
 
+// FC をなんか色々変えたやつ、普通に使えるし、PPR 計算時間だけに限ればこっちのほうが早い
+
 Graph Simple_Random_Walk(Graph& origin_graph, double rate)
 {
     auto start = chrono::system_clock::now();
@@ -302,6 +304,7 @@ Graph Flow_Control(Graph& origin_graph, double rate, vector<int> connect_node_ve
     int sampling_edge_num = (int) (edge_num * rate);
     int node_num = origin_graph.get_number_of_nodes();
     unordered_map<pair<int, int>, double, pairhash> edge_flow_map;
+    // unordered_map<pair<int, int>, double, pairhash> edge_ppr;
     vector<pair<int, int> > edge_vec = origin_graph.get_edge_vec();
     set<pair <int, int> > edge_set;
     for (pair<int, int>& p : edge_vec) {
@@ -320,6 +323,7 @@ Graph Flow_Control(Graph& origin_graph, double rate, vector<int> connect_node_ve
         auto start_ppr_calc_2 = chrono::system_clock::now();
 
         unordered_map<pair<int, int>, double, pairhash> edge_ppr = origin_graph.calc_edge_ppr_by_fora(node, random_walk_num, flow_rwer);
+        // origin_graph.calc_edge_ppr_by_fora(edge_ppr, node, random_walk_num, flow_rwer);
         
         auto end_ppr_calc_2 = chrono::system_clock::now();
         auto dur_ppr_calc_2 = end_ppr_calc_2 - start_ppr_calc_2;

@@ -20,6 +20,8 @@
 
 using namespace std;
 
+// 最初のエッジ PPR 用の変数を作ったことで PPR 計算が少し遅くなったけどエッジの追加が少し高速なやつ
+
 Graph Simple_Random_Walk(Graph& origin_graph, double rate)
 {
     auto start = chrono::system_clock::now();
@@ -301,12 +303,10 @@ Graph Flow_Control(Graph& origin_graph, double rate, vector<int> connect_node_ve
     int edge_num = origin_graph.get_number_of_edges();
     int sampling_edge_num = (int) (edge_num * rate);
     int node_num = origin_graph.get_number_of_nodes();
-    unordered_map<pair<int, int>, double, pairhash> edge_flow_map;
-    // unordered_map<pair<int, int>, double, pairhash> edge_ppr;
+    unordered_map<pair<int, int>, double, pairhash> edge_ppr;
     vector<pair<int, int> > edge_vec = origin_graph.get_edge_vec();
-    set<pair <int, int> > edge_set;
-    for (pair<int, int>& p : edge_vec) {
-        edge_set.insert(p);
+    for (auto& [source_node, target_node] : edge_vec) {
+        edge_ppr[make_pair(source_node, target_node)] = 0;
     }
     Graph sampling_graph;
 
@@ -320,18 +320,14 @@ Graph Flow_Control(Graph& origin_graph, double rate, vector<int> connect_node_ve
 
         auto start_ppr_calc_2 = chrono::system_clock::now();
 
-        unordered_map<pair<int, int>, double, pairhash> edge_ppr = origin_graph.calc_edge_ppr_by_fora(node, random_walk_num, flow_rwer);
-        // origin_graph.calc_edge_ppr_by_fora(edge_ppr, node, random_walk_num, flow_rwer);
+        // unordered_map<pair<int, int>, double, pairhash> edge_ppr = origin_graph.calc_edge_ppr_by_fora(node, random_walk_num, flow_rwer);
+        origin_graph.calc_edge_ppr_by_fora(edge_ppr, node, random_walk_num, flow_rwer);
         
         auto end_ppr_calc_2 = chrono::system_clock::now();
         auto dur_ppr_calc_2 = end_ppr_calc_2 - start_ppr_calc_2;
         auto microsec_ppr_calc_2 = chrono::duration_cast<chrono::microseconds>(dur_ppr_calc_2).count();
 
         sum += microsec_ppr_calc_2 / pow(10, 6);
-        for (auto& [edge, flow_num] : edge_ppr) {
-            edge_flow_map[{edge.first, edge.second}] += flow_num;
-            edge_set.erase(edge);
-        }
     }
 
     cout << "PPR だけ Time: " << sum << endl;
@@ -344,7 +340,7 @@ Graph Flow_Control(Graph& origin_graph, double rate, vector<int> connect_node_ve
     auto start_before_sort = chrono::system_clock::now();
 
     vector<pair <double, pair<int, int> > > tmp_vec;
-    for (auto& [edge, value] : edge_flow_map) {
+    for (auto& [edge, value] : edge_ppr) {
         tmp_vec.push_back(make_pair(-value, make_pair(edge.first, edge.second)));
     }
     auto end_before_sort = chrono::system_clock::now();
@@ -364,20 +360,8 @@ Graph Flow_Control(Graph& origin_graph, double rate, vector<int> connect_node_ve
     auto start_add = chrono::system_clock::now();
 
     for (int i = 0; i < sampling_edge_num; i++) {
-        sampling_graph.add_edge(tmp_vec[i].second.first, tmp_vec[i].second.second);
-    }
-
-    if (sampling_edge_num > sampling_graph.get_number_of_edges()) {
-        int addition_edge_num = sampling_edge_num - sampling_graph.get_number_of_edges();
-        vector<pair <int, int> > zero_vec;
-        for (pair<int, int> p : edge_set) {
-            zero_vec.push_back(p);
-        }
-        vector<pair <int, int> > addition_edge;
-        gen.gen_sample_pair(zero_vec, addition_edge, addition_edge_num);
-        for (auto [source_node, target_node] : addition_edge) {
-            sampling_graph.add_edge(source_node, target_node);
-        }
+        // sampling_graph.add_edge(tmp_vec[i].second.first, tmp_vec[i].second.second);
+        sampling_graph.add_edge_no_multi(tmp_vec[i].second.first, tmp_vec[i].second.second);
     }
 
     auto end_add = chrono::system_clock::now();

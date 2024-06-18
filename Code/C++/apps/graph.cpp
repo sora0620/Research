@@ -188,7 +188,7 @@ void Graph::add_node(int node)
 }
 
 // エッジの追加
-// 重複エッジが無いかをちゃんとチェックする必要あり
+// 重複エッジが無いかをちゃんとチェックする
 void Graph::add_edge(int n1, int n2)
 {
     // adjacency_list に n1 -> n2 を追加(有向のため)
@@ -210,6 +210,22 @@ void Graph::add_edge(int n1, int n2)
     if (tmp_set_2.find(n1) == tmp_set_2.end()) {
         this->in_neighbor_list[n2].push_back(n1);
     }
+
+    // 頂点リスト生成 (set)
+    this->node_list_set.insert(n1);
+    this->node_list_set.insert(n2);
+}
+
+// エッジの追加
+// 重複エッジが無いかをちゃんとチェックしなくて良い場合
+void Graph::add_edge_no_multi(int n1, int n2)
+{
+    // adjacency_list に n1 -> n2 を追加(有向のため)
+    this->in_neighbor_list[n1];
+    this->adjacency_list[n2];
+
+    this->adjacency_list[n1].push_back(n2);
+    this->in_neighbor_list[n2].push_back(n1);
 
     // 頂点リスト生成 (set)
     this->node_list_set.insert(n1);
@@ -332,8 +348,8 @@ unordered_map<int, double> Graph::calc_ppr_by_fora(int src_id, int walk_count, d
 }
 
 // エッジ PPR 計算用関数
-// void Graph::calc_edge_ppr_by_fora(unordered_map<pair<int, int>, double, pairhash>& edge_ppr, int src_id, int walk_count, int flow_rwer, double alpha, double r_max_coef) const {
-unordered_map<pair <int, int>, double, pairhash> Graph::calc_edge_ppr_by_fora(int src_id, int walk_count, int flow_rwer, double alpha, double r_max_coef) const {
+void Graph::calc_edge_ppr_by_fora(unordered_map<pair<int, int>, double, pairhash>& edge_ppr, int src_id, int walk_count, int flow_rwer, double alpha, double r_max_coef) const {
+// unordered_map<pair <int, int>, double, pairhash> Graph::calc_edge_ppr_by_fora(int src_id, int walk_count, int flow_rwer, double alpha, double r_max_coef) const {
 // unordered_map<int, unordered_map <int, double> > Graph::calc_edge_ppr_by_fora(int src_id, int walk_count, int flow_rwer, double alpha, double r_max_coef) const {
 // unordered_map<int, double> Graph::calc_edge_ppr_by_fora(int src_id, int walk_count, int flow_rwer, double alpha, double r_max_coef) const {
     /**
@@ -352,7 +368,7 @@ unordered_map<pair <int, int>, double, pairhash> Graph::calc_edge_ppr_by_fora(in
     unordered_set<int> active_node_set;
     queue<int> active_node_queue;
     // unordered_map<int, unordered_map <int, double> > edge_ppr;
-    unordered_map<pair <int, int>, double, pairhash> edge_ppr;
+    // unordered_map<pair <int, int>, double, pairhash> edge_ppr;
     // unordered_map<int, double> edge_ppr;
     int src_degree = get_degree(src_id);
     active_node_set.insert(src_id);
@@ -396,6 +412,7 @@ unordered_map<pair <int, int>, double, pairhash> Graph::calc_edge_ppr_by_fora(in
             while ((double)rand()/RAND_MAX > alpha) {
                 if (current_node_id == -1) break;
                 current_node_id = get_random_adjacent(current_node_id);
+                if (current_node_id == -1) break;
                 edge_ppr[{prev_node_id, current_node_id}] += 1 * flow_rwer;
                 // edge_ppr[prev_node_id][current_node_id] += 1 * flow_rwer;
                 // edge_ppr[prev_node_id] += 1 * flow_rwer;
@@ -403,8 +420,8 @@ unordered_map<pair <int, int>, double, pairhash> Graph::calc_edge_ppr_by_fora(in
         }
     }
 
-    return edge_ppr;
-    // return;
+    // return edge_ppr;
+    return;
 }
 
 // エッジを追加する関数
