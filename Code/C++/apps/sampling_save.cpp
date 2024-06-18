@@ -121,21 +121,9 @@ void write_adjlist(Graph& sampling_graph, vector<int>& connect_node_vec, string 
     return;
 }
 
-void write_connect_node(vector<int>& connect_node_vec, string save_file)
+vector<int> return_connect_node_vec(string graph_name, string type, int weight_node_num, int ver)
 {
-    ofstream writing_file;
-    writing_file.open(save_file, ios::out);
-
-    for (int node : connect_node_vec) {
-        writing_file << node << endl;
-    }
-
-    return;
-}
-
-vector<int> return_connect_node_vec(string type, int weight_node_num, int ver)
-{
-    string path = "../../../Dataset/connect_node/" + type + "/" + to_string(weight_node_num) + "/ver_" + to_string(ver) + ".txt";
+    string path = "../../../Dataset/connect_node/" + graph_name + "/" + type + "/" + to_string(weight_node_num) + "/ver_" + to_string(ver) + ".txt";
     ifstream file(path);
     vector<int> return_vec;
     string line, s;
@@ -163,10 +151,9 @@ int main(int argc, char* argv[])
     string graph_name = "soc-Epinions1";
     string sampling = "FC";
     string border_type = "prefer";
-    // vector<string> rate_vec = {"0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1"};
-    vector<string> rate_vec = {"0.9"};
+    vector<string> rate_vec = {"0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1"};
     // vector<string> rate_vec = {"0.01", "0.02", "0.03", "0.04", "0.05", "0.06", "0.07", "0.08", "0.09"};
-    int weight_node_num = 50; // 境界ノード数
+    int weight_node_num = 500; // 境界ノード数
     int weight_range = 100; // 境界ノードの重み幅
     int default_weight = 50; // 基本の重み
     int sampling_num = 5; // 何回分保存するか
@@ -179,10 +166,10 @@ int main(int argc, char* argv[])
     int random_walk_num = (int) pow(10, 6) / weight_node_num;
     
     for (int i = 0; i < sampling_num; i++) {
-        vector<int> connect_node_vec = return_connect_node_vec(border_type, weight_node_num, i);
+        vector<int> connect_node_vec = return_connect_node_vec(graph_name, border_type, weight_node_num, i);
         vector<int> weight_vec = return_weight(connect_node_vec, weight_range, default_weight);
         for (string rate_str : rate_vec) {
-            string save_folder = "../../../Dataset/FC/境界ノード_" + to_string(weight_node_num) + "/" + rate_str;
+            string save_folder = "../../../Dataset/FC/" + graph_name + "/境界ノード_" + to_string(weight_node_num) + "/" + rate_str;
             double rate = stod(rate_str);
             Graph sampling_graph = return_sampling_graph(origin_graph, connect_node_vec, rate, sampling, weight_vec, default_weight, random_walk_num);
             write_adjlist(sampling_graph, connect_node_vec, save_folder, i);

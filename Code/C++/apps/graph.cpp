@@ -90,7 +90,7 @@ Graph::Graph(string graph_name)
     auto dur = end - start;        // 要した時間を計算
     auto sec = chrono::duration_cast<std::chrono::seconds>(dur).count();
     // 要した時間をミリ秒（1/1000秒）に変換して表示
-    cout << "Graph Read Time: " << sec << " sec\n" << endl;
+    cout << "Graph Read Time: " << sec << " sec" << endl;
 }
 
 // const 参照のノードリストを返す vector でidが昇順
@@ -281,8 +281,8 @@ unordered_map<int, double> Graph::calc_ppr_by_fora(int src_id, int walk_count, d
     unordered_map<int, double> ppr, residue;
     unordered_set<int> active_node_set;
     queue<int> active_node_queue;
-    int src_degree = get_degree(src_id); // 起点ノードの次数
-    unordered_set<int> node_list_set = get_node_set();
+    int src_degree = get_degree(src_id);
+    // unordered_set<int> node_list_set = get_node_set();
     active_node_set.insert(src_id);
     active_node_queue.push(src_id);
     residue.emplace(src_id, 1);
@@ -291,10 +291,9 @@ unordered_map<int, double> Graph::calc_ppr_by_fora(int src_id, int walk_count, d
         int node_degree = get_degree(node_id);
         active_node_queue.pop();
         active_node_set.erase(node_id);
-        // dangling node 到達時はスーパーノード-1に渡す．スーパーノードはactive node 対象外
+        // dangling node. スーパーノードはactive node 対象外
         if (node_degree == 0) {
             ppr[node_id] += alpha * residue.at(node_id);
-            ppr[-1] += (1 - alpha) * residue.at(node_id);
         } else {
             vector<int> adj_list = get_adj_list_list(node_id);
             ppr[node_id] += alpha * residue.at(node_id);
@@ -322,23 +321,21 @@ unordered_map<int, double> Graph::calc_ppr_by_fora(int src_id, int walk_count, d
         for (int end_node_id : end_node_id_list) {
             if (ppr.count(end_node_id) == 0) ppr[end_node_id] = 0;
             ppr[end_node_id] += (double)r_val / walk_count_i;
-            int node_degree = get_degree(end_node_id);
-            vector<int> adj_list = get_adj_list_list(end_node_id);
-            for (int i = 0; i < node_degree; i++) {
-                int adj_id = adj_list[i];
-            }
         }
     }
 
-    for (int node : node_list_set) {
-        ppr[node];
-    }
+    // for (int node : node_list_set) {
+    //     ppr[node];
+    // }
 
     return ppr;
 }
 
 // エッジ PPR 計算用関数
-unordered_map<pair<int, int>, double, pairhash> Graph::calc_edge_ppr_by_fora(int src_id, int walk_count, int flow_rwer, double alpha, double r_max_coef) const {
+// void Graph::calc_edge_ppr_by_fora(unordered_map<pair<int, int>, double, pairhash>& edge_ppr, int src_id, int walk_count, int flow_rwer, double alpha, double r_max_coef) const {
+unordered_map<pair <int, int>, double, pairhash> Graph::calc_edge_ppr_by_fora(int src_id, int walk_count, int flow_rwer, double alpha, double r_max_coef) const {
+// unordered_map<int, unordered_map <int, double> > Graph::calc_edge_ppr_by_fora(int src_id, int walk_count, int flow_rwer, double alpha, double r_max_coef) const {
+// unordered_map<int, double> Graph::calc_edge_ppr_by_fora(int src_id, int walk_count, int flow_rwer, double alpha, double r_max_coef) const {
     /**
     * FORA の前処理？
     * 
@@ -354,11 +351,10 @@ unordered_map<pair<int, int>, double, pairhash> Graph::calc_edge_ppr_by_fora(int
     unordered_map<int, double> residue;
     unordered_set<int> active_node_set;
     queue<int> active_node_queue;
-    int edge_num = get_number_of_edges();
     // unordered_map<int, unordered_map <int, double> > edge_ppr;
     unordered_map<pair <int, int>, double, pairhash> edge_ppr;
-    edge_ppr.reserve(edge_num);
-    int src_degree = get_degree(src_id); // 起点ノードの次数
+    // unordered_map<int, double> edge_ppr;
+    int src_degree = get_degree(src_id);
     active_node_set.insert(src_id);
     active_node_queue.push(src_id);
     residue.emplace(src_id, 1);
@@ -367,13 +363,15 @@ unordered_map<pair<int, int>, double, pairhash> Graph::calc_edge_ppr_by_fora(int
         int node_degree = get_degree(node_id);
         active_node_queue.pop();
         active_node_set.erase(node_id);
-        // dangling node 到達時はスーパーノード-1に渡す．スーパーノードはactive node 対象外
+        // 出次数が 0 の時はエッジ PPR は生じ得ないので無視
         if (node_degree != 0) {
             vector<int> adj_list = get_adj_list_list(node_id);
             for (int i = 0; i < node_degree; i++) {
                 int adj_id = adj_list[i];
                 int adj_degree = get_degree(adj_id);
-                edge_ppr[{node_id, adj_id}] += ((alpha * residue[node_id]) / node_degree) * flow_rwer;
+                edge_ppr[{node_id, adj_id}] += ((alpha * residue[node_id]) / node_degree) * flow_rwer; // エッジ PPR 計算
+                // edge_ppr[node_id][adj_id] += ((alpha * residue[node_id]) / node_degree) * flow_rwer; // エッジ PPR 計算
+                // edge_ppr[node_id] += ((alpha * residue[node_id]) / node_degree) * flow_rwer; // エッジ PPR 計算
                 residue[adj_id] += (1 - alpha) * residue[node_id] / node_degree;
                 if ((residue[adj_id] > r_max_func(adj_degree, alpha, walk_count, r_max_coef)) && (active_node_set.count(adj_id) == 0)) {
                     active_node_set.insert(adj_id);
@@ -391,18 +389,22 @@ unordered_map<pair<int, int>, double, pairhash> Graph::calc_edge_ppr_by_fora(int
         if (r_val == 0) continue;
         
         int walk_count_i = (int)ceil(r_val * walk_count);
-        vector<int> end_node_id_list = get_random_walk_end_nodes(node_id, walk_count_i, alpha);
-        for (int end_node_id : end_node_id_list) {
-            int node_degree = get_degree(end_node_id);
-            vector<int> adj_list = get_adj_list_list(end_node_id);
-            for (int i = 0; i < node_degree; i++) {
-                int adj_id = adj_list[i];
-                edge_ppr[{end_node_id, adj_id}] += (( (double) r_val / walk_count_i) / node_degree) * flow_rwer;
+
+        for (int i = 0; i < walk_count_i; i++) {
+            int current_node_id = node_id;
+            int prev_node_id = current_node_id;
+            while ((double)rand()/RAND_MAX > alpha) {
+                if (current_node_id == -1) break;
+                current_node_id = get_random_adjacent(current_node_id);
+                edge_ppr[{prev_node_id, current_node_id}] += 1 * flow_rwer;
+                // edge_ppr[prev_node_id][current_node_id] += 1 * flow_rwer;
+                // edge_ppr[prev_node_id] += 1 * flow_rwer;
             }
         }
     }
 
     return edge_ppr;
+    // return;
 }
 
 // エッジを追加する関数

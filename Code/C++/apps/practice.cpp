@@ -4,9 +4,11 @@
 #include <utility>
 #include <limits>
 #include <chrono>
+#include <unordered_map>
 #include "../include/graph.h"
 #include "../include/calc.h"
 #include "../include/util.hpp"
+#include "../include/pair_hash.hpp"
 
 // g++ -std=c++17 practice.cpp graph.cpp calc.cpp
 
@@ -24,11 +26,13 @@ int main() {
     unordered_map<int, vector<int>> adj_map = origin_graph.get_adjacency_list();
 
     gen.gen_sample(node_vec, sample_vec, weight_node_num);
-    cout << sample_vec.size() << endl;
 
     auto start = chrono::system_clock::now();
     for (int node : sample_vec) {
-        unordered_map<int, double> ppr = origin_graph.calc_ppr_by_fora(node, random_walk_num);
+        // unordered_map<int, double> ppr = origin_graph.calc_ppr_by_fora(node, random_walk_num);
+        unordered_map<pair<int, int>, double, pairhash> edge_ppr = origin_graph.calc_edge_ppr_by_fora(node, random_walk_num, 10);
+        // unordered_map<int, unordered_map <int, double> > edge_ppr = origin_graph.calc_edge_ppr_by_fora(node, random_walk_num, 10);
+        // unordered_map<int, double> edge_ppr = origin_graph.calc_edge_ppr_by_fora(node, random_walk_num, 10);
         // unordered_map<int, double> ppr = personalized_pagerank(adj_map, node_vec, node, random_walk_num);
     }
     auto end = chrono::system_clock::now();
