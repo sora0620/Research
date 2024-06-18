@@ -320,8 +320,8 @@ Graph Flow_Control(Graph& origin_graph, double rate, vector<int> connect_node_ve
 
         auto start_ppr_calc_2 = chrono::system_clock::now();
 
-        // unordered_map<pair<int, int>, double, pairhash> edge_ppr = origin_graph.calc_edge_ppr_by_fora(node, random_walk_num, flow_rwer);
-        origin_graph.calc_edge_ppr_by_fora(edge_ppr, node, random_walk_num, flow_rwer);
+        // unordered_map<pair<int, int>, double, pairhash> edge_ppr = origin_graph.calc_edge_ppr_by_fora_flow(node, random_walk_num, flow_rwer);
+        origin_graph.calc_edge_ppr_by_fora_flow(edge_ppr, node, random_walk_num, flow_rwer);
         
         auto end_ppr_calc_2 = chrono::system_clock::now();
         auto dur_ppr_calc_2 = end_ppr_calc_2 - start_ppr_calc_2;

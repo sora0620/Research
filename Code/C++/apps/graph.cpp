@@ -348,10 +348,88 @@ unordered_map<int, double> Graph::calc_ppr_by_fora(int src_id, int walk_count, d
 }
 
 // エッジ PPR 計算用関数
-void Graph::calc_edge_ppr_by_fora(unordered_map<pair<int, int>, double, pairhash>& edge_ppr, int src_id, int walk_count, int flow_rwer, double alpha, double r_max_coef) const {
-// unordered_map<pair <int, int>, double, pairhash> Graph::calc_edge_ppr_by_fora(int src_id, int walk_count, int flow_rwer, double alpha, double r_max_coef) const {
-// unordered_map<int, unordered_map <int, double> > Graph::calc_edge_ppr_by_fora(int src_id, int walk_count, int flow_rwer, double alpha, double r_max_coef) const {
-// unordered_map<int, double> Graph::calc_edge_ppr_by_fora(int src_id, int walk_count, int flow_rwer, double alpha, double r_max_coef) const {
+void Graph::calc_edge_ppr_by_fora(unordered_map<pair<int, int>, double, pairhash>& edge_ppr, int src_id, int walk_count, double alpha, double r_max_coef) const {
+// unordered_map<pair <int, int>, double, pairhash> Graph::calc_edge_ppr_by_fora(int src_id, int walk_count, double alpha, double r_max_coef) const {
+// unordered_map<int, unordered_map <int, double> > Graph::calc_edge_ppr_by_fora(int src_id, int walk_count, double alpha, double r_max_coef) const {
+// unordered_map<int, double> Graph::calc_edge_ppr_by_fora(int src_id, int walk_count, double alpha, double r_max_coef) const {
+    /**
+    * FORA の前処理？
+    * 
+    * @param src_id RW の起点ノード
+    * @param walk_count RW の開始回数
+    * @param alpha 終了確率 = 0.15
+    * @param r_max_coef リザーブ値のしきい値を決定する係数
+    * @return ノードIDをキーとするPPRの結果のマップ
+    * @return 各ノードのリザーブ値のマップ
+    */
+
+    // ForwardPush 部分
+    unordered_map<int, double> residue;
+    unordered_set<int> active_node_set;
+    queue<int> active_node_queue;
+    // unordered_map<int, unordered_map <int, double> > edge_ppr;
+    // unordered_map<pair <int, int>, double, pairhash> edge_ppr;
+    // unordered_map<int, double> edge_ppr;
+    int src_degree = get_degree(src_id);
+    active_node_set.insert(src_id);
+    active_node_queue.push(src_id);
+    residue.emplace(src_id, 1);
+    while (active_node_queue.size() > 0) {
+        int node_id = active_node_queue.front();
+        int node_degree = get_degree(node_id);
+        active_node_queue.pop();
+        active_node_set.erase(node_id);
+        // 出次数が 0 の時はエッジ PPR は生じ得ないので無視
+        if (node_degree != 0) {
+            vector<int> adj_list = get_adj_list_list(node_id);
+            for (int i = 0; i < node_degree; i++) {
+                int adj_id = adj_list[i];
+                int adj_degree = get_degree(adj_id);
+                edge_ppr[{node_id, adj_id}] += ((alpha * residue[node_id]) / node_degree); // エッジ PPR 計算
+                // edge_ppr[node_id][adj_id] += ((alpha * residue[node_id]) / node_degree); // エッジ PPR 計算
+                // edge_ppr[node_id] += ((alpha * residue[node_id]) / node_degree); // エッジ PPR 計算
+                residue[adj_id] += (1 - alpha) * residue[node_id] / node_degree;
+                if ((residue[adj_id] > r_max_func(adj_degree, alpha, walk_count, r_max_coef)) && (active_node_set.count(adj_id) == 0)) {
+                    active_node_set.insert(adj_id);
+                    active_node_queue.push(adj_id);
+                }
+            }
+        }
+        residue[node_id] = 0;
+    }
+
+    // FORA 部分
+    for (auto itr = residue.begin(); itr != residue.end(); itr++) {
+        int node_id = itr->first;
+        double r_val = itr->second;
+        if (r_val == 0) continue;
+        
+        int walk_count_i = (int)ceil(r_val * walk_count);
+
+        for (int i = 0; i < walk_count_i; i++) {
+            int current_node_id = node_id;
+            int prev_node_id = current_node_id;
+            while ((double)rand()/RAND_MAX > alpha) {
+                if (current_node_id == -1) break;
+                current_node_id = get_random_adjacent(current_node_id);
+                if (current_node_id == -1) break;
+                edge_ppr[{prev_node_id, current_node_id}] += (double) 1 / walk_count_i;
+                // edge_ppr[prev_node_id][current_node_id] += 1;
+                // edge_ppr[prev_node_id] += 1;
+            }
+        }
+    }
+
+    // return edge_ppr;
+    return;
+}
+
+// エッジ PPR 計算用関数
+// 流入 RWer も考えた場合
+void Graph::calc_edge_ppr_by_fora_flow(unordered_map<pair<int, int>, double, pairhash>& edge_ppr, int src_id, int walk_count, int flow_rwer, double alpha, double r_max_coef) const {
+// unordered_map<pair <int, int>, double, pairhash> Graph::calc_edge_ppr_by_fora_flow(int src_id, int walk_count, int flow_rwer, double alpha, double r_max_coef) const {
+// unordered_map<int, unordered_map <int, double> > Graph::calc_edge_ppr_by_fora_flow(int src_id, int walk_count, int flow_rwer, double alpha, double r_max_coef) const {
+// unordered_map<int, double> Graph::calc_edge_ppr_by_fora_flow(int src_id, int walk_count, int flow_rwer, double alpha, double r_max_coef) const {
     /**
     * FORA の前処理？
     * 
