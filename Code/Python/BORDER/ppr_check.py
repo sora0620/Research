@@ -47,13 +47,15 @@ def make_plt(x_list, y_list, start_x_list, start_y_list, figsize=(6, 6), x_label
     ax.yaxis.set_major_formatter(ptick.ScalarFormatter(useMathText=True))
     ax.ticklabel_format(style=axis[0], axis="x", scilimits=(0,0))
     ax.ticklabel_format(style=axis[1], axis="y", scilimits=(0,0))
+    ax.set_xlim(left=0, right=0.006)
+    ax.set_ylim(bottom=0, top=0.006)
     
     # plt の設定
     if save_path != None:
         plt.savefig(save_path)
     
     plt.tight_layout()
-    plt.show()
+    # plt.show()
     plt.close()
 
 def return_ppr(node, graph):
@@ -68,7 +70,7 @@ def main():
     # ハイパーパラメータ
     start_node = 0 # PPR を確かめるノードのノード番号
     graph_name = "soc-Epinions1"
-    path = "../../../Dataset/PPR/{}_ppr.json".format(graph_name)
+    path = "../../../Dataset/Centrality/ppr.json"
     
     # 描画パラメータ
     x_label = "Networkx の結果"
@@ -78,6 +80,7 @@ def main():
     origin_graph = Calc.read_origin_graph(graph_name)
     ppr_dict = return_ppr(start_node, origin_graph)
     ppr_dict_rwer = read_ppr(path)
+    print(sum(ppr_dict_rwer.values()))
     
     x_list = []
     y_list = []
@@ -91,7 +94,8 @@ def main():
             x_list.append(ppr_dict[node])
             y_list.append(ppr_dict_rwer[node])
     
-    make_plt(x_list, y_list, start_x_list, start_y_list, x_label=x_label, y_label=y_label, title=title)
+    save_path = "../pic/check_ppr.png"
+    make_plt(x_list, y_list, start_x_list, start_y_list, x_label=x_label, y_label=y_label, title=title, save_path=save_path)
 
 if __name__ == "__main__":
     main()

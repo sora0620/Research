@@ -62,21 +62,23 @@ class PR:
         
         pr_sorted = sorted(pr_dict.items(), key=lambda x:x[1], reverse=True)
         pr_sorted_node_list = [node for node, pr in pr_sorted]
-        sampling_edge_set = set()
-        
-        while len(sampling_edge_set) < sampling_edge_num:
-            current_node = int(pr_sorted_node_list.pop(0)) # 現存ノードの中で最も CC が高いノードを取得 & リストから削除
-            in_edge_set = {(in_node, current_node) for in_node in list(origin_graph.predecessors(current_node))}
+
+        sampling_edge_list = []
+        for str_node in pr_sorted_node_list:
+            current_node = int(str_node)
+            in_adj_list = [(in_node, current_node) for in_node in list(origin_graph.predeccessors(current_node))]
+            sampling_edge_list.extend(in_adj_list)
             
-            if len(sampling_edge_set | in_edge_set) > sampling_edge_num:
-                diff = sampling_edge_num - len(sampling_edge_set)
-                tmp_list = list(in_edge_set - sampling_edge_set)
-                sampling_edge_set.update(set(random.sample(tmp_list, diff)))
+            if len(sampling_edge_list) >= sampling_edge_num:
+                tmp_list = in_adj_list
                 break
-            else:
-                sampling_edge_set.update(in_edge_set)
         
-        self.sampling_graph.add_edges_from(list(sampling_edge_set))
+        self.sampling_graph.add_edges_from(sampling_edge_list)
+        
+        remove_num = self.sampling_graph.number_of_edges() - sampling_edge_num
+        remove_edge_list = random.sample(tmp_list, remove_num)
+        self.sampling_graph.remove_edges_from(remove_edge_list)
+        
         if self.sampling_graph.number_of_edges() != sampling_edge_num:
             print("Size Error!")
             exit(1)
@@ -101,21 +103,23 @@ class PR:
         
         pr_sorted = sorted(pr_dict.items(), key=lambda x:x[1], reverse=True)
         pr_sorted_node_list = [node for node, pr in pr_sorted]
-        sampling_edge_set = set()
         
-        while len(sampling_edge_set) < sampling_edge_num:
-            current_node = int(pr_sorted_node_list.pop(0)) # 現存ノードの中で最も CC が高いノードを取得 & リストから削除
-            out_edge_set  = {(current_node, out_node) for out_node in list(origin_graph.successors(current_node))}
+        sampling_edge_list = []
+        for str_node in pr_sorted_node_list:
+            current_node = int(str_node)
+            out_adj_list = [(current_node, out_node) for out_node in list(origin_graph.successors(current_node))]
+            sampling_edge_list.extend(out_adj_list)
             
-            if len(sampling_edge_set | out_edge_set) > sampling_edge_num:
-                diff = sampling_edge_num - len(sampling_edge_set)
-                tmp_list = list(out_edge_set - sampling_edge_set)
-                sampling_edge_set.update(set(random.sample(tmp_list, diff)))
+            if len(sampling_edge_list) >= sampling_edge_num:
+                tmp_list = out_adj_list
                 break
-            else:
-                sampling_edge_set.update(out_edge_set)
+            
+        self.sampling_graph.add_edges_from(sampling_edge_list)
         
-        self.sampling_graph.add_edges_from(list(sampling_edge_set))
+        remove_num = self.sampling_graph.number_of_edges() - sampling_edge_num
+        remove_edge_list = random.sample(tmp_list, remove_num)
+        self.sampling_graph.remove_edges_from(remove_edge_list)
+        
         if self.sampling_graph.number_of_edges() != sampling_edge_num:
             print("Size Error!")
             exit(1)

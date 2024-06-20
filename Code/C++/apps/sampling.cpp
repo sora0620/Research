@@ -203,125 +203,37 @@ Graph Forest_Fire(Graph& origin_graph, int nodes_to_sample)
     return sampling_graph;
 }
 
-// FORA 導入前
-// Graph Flow_Control(Graph& origin_graph, double rate, vector<int> connect_node_vec, unordered_map<int, int> border_weight_dict, int default_weight, unordered_map<int, unordered_map<int, double> > ppr_dict)
-// {
-//     vector<pair <int, int> > edge_vec = origin_graph.get_edge_vec();
-//     int edge_num = edge_vec.size();
-//     unordered_map<int, int> out_deg_map = origin_graph.get_out_deg();
-//     vector<vector<double> > rw_flow_map(connect_node_vec.size()); // 各ノードを始点とした際の, 各エッジを通る RWer の確率
-//     int sampling_edge_num = (int) (edge_vec.size() * rate);
-//     double alpha = 0.15;
-//     Graph sampling_graph;
-
-//     // map のキーとして pair を使うことは難しいらしいので, エッジを指定するようなベクトルを作って, そのベクトルを使用したい時に呼び出す形にしよう
-
-//     auto start = chrono::system_clock::now();
-    
-//     auto start_flow = chrono::system_clock::now();
-
-//     double coeff = (1 - alpha) / alpha;
-//     for (int i = 0; i < connect_node_vec.size(); i++) {
-//         int node = connect_node_vec[i];
-//         vector<double> flow_vec(edge_num); // edge_vec と同様の並びで, 各エッジに対する RWer の確率を格納
-
-//         for (int i = 0; i < edge_num; i++) {
-//             flow_vec[i] = ppr_dict[node][edge_vec[i].first] * coeff / out_deg_map[edge_vec[i].first];
-//         }
-
-//         rw_flow_map[i] = flow_vec;
-//     }
-
-//     auto end_flow = chrono::system_clock::now();
-//     auto dur_flow = end_flow - start_flow;
-//     auto microsec_flow = chrono::duration_cast<chrono::microseconds>(dur_flow).count();
-//     cout << "各境界ノードから開始したRWer が各エッジを通過する確率計算に要した時間: " << microsec_flow / pow(10, 6) << "sec\n";
-
-//     auto start_rw_flow = chrono::system_clock::now();
-
-//     vector<double> edge_weight(edge_num);
-//     for (int i = 0; i < edge_num; i++) {
-//         edge_weight[i] = 0;
-
-//         for (int j = 0; j < connect_node_vec.size(); j++) {
-//             int node = connect_node_vec[j];
-//             edge_weight[i] += (border_weight_dict[node] - default_weight) * rw_flow_map[j][i];
-//         }
-//     }
-    
-//     auto end_rw_flow = chrono::system_clock::now();
-//     auto dur_rw_flow = end_rw_flow - start_rw_flow;
-//     auto microsec_rw_flow = chrono::duration_cast<chrono::microseconds>(dur_rw_flow).count();
-//     cout << "実際に流れた RWer を計算するのに要した時間: " << microsec_rw_flow / pow(10, 6) << "sec\n";
-
-//     auto start_before_sort = chrono::system_clock::now();
-//     vector<pair <double, pair<int, int> > > tmp_vec(edge_num);
-//     for (int i = 0; i < edge_num; i++) {
-//         tmp_vec[i] = make_pair(-edge_weight[i], edge_vec[i]);
-//     }
-//     auto end_before_sort = chrono::system_clock::now();
-//     auto dur_before_sort = end_before_sort - start_before_sort;
-//     auto microsec_before_sort = chrono::duration_cast<chrono::microseconds>(dur_before_sort).count();
-//     cout << "ソートの事前処理に要した時間: " << microsec_before_sort / pow(10, 6) << "sec\n";
-
-//     auto start_sort = chrono::system_clock::now();
-
-//     sort(tmp_vec.begin(), tmp_vec.end());
-
-//     auto end_sort = chrono::system_clock::now();
-//     auto dur_sort = end_sort - start_sort;
-//     auto microsec_sort = chrono::duration_cast<chrono::microseconds>(dur_sort).count();
-//     cout << "ソートに要した時間: " << microsec_sort / pow(10, 6) << "sec\n";
-
-//     auto start_add = chrono::system_clock::now();
-
-//     for (int i = 0; i < sampling_edge_num; i++) {
-//         sampling_graph.add_edge(tmp_vec[i].second.first, tmp_vec[i].second.second);
-//     }
-
-//     auto end_add = chrono::system_clock::now();
-//     auto dur_add = end_add - start_add;
-//     auto microsec_add = chrono::duration_cast<chrono::microseconds>(dur_add).count();
-//     cout << "エッジ追加に要した時間: " << microsec_add / pow(10, 6) << "sec\n";
-
-//     auto end = chrono::system_clock::now();
-//     auto dur = end - start;
-//     auto msec = chrono::duration_cast<chrono::milliseconds>(dur).count();
-//     // 要した時間をミリ秒（1/1000秒）に変換して表示
-//     cout << "FC_Time: " << msec / pow(10, 3) << "sec\n";
-//     cout << "Node: " << sampling_graph.get_number_of_nodes() << ", Edge: " << sampling_graph.get_number_of_edges() << endl;
-
-//     return sampling_graph;
-// }
-
-// FORA 導入 (& PPR 計算の中に他のエッジ PPR 計算も含めて高速化したやつ) 導入後
+// 少し遅くて良いから正確なやつ
 Graph Flow_Control(Graph& origin_graph, double rate, vector<int> connect_node_vec, vector<int> rwer_flow_vec, int default_weight, int random_walk_num)
 {
-    // ランダム生成器
-    StdRandNumGenerator gen;
-
-    int edge_num = origin_graph.get_number_of_edges();
-    int sampling_edge_num = (int) (edge_num * rate);
-    int node_num = origin_graph.get_number_of_nodes();
-    unordered_map<pair<int, int>, double, pairhash> edge_ppr;
-    vector<pair<int, int> > edge_vec = origin_graph.get_edge_vec();
+    vector<pair <int, int> > edge_vec = origin_graph.get_edge_vec();
+    unordered_map<int, int> out_deg_map = origin_graph.get_out_deg();
+    int sampling_edge_num = (int) (edge_vec.size() * rate);
+    double alpha = 0.15;
+    unordered_map<int, unordered_map <int, double> > edge_ppr;
     for (auto& [source_node, target_node] : edge_vec) {
-        edge_ppr[make_pair(source_node, target_node)] = 0;
+        edge_ppr[source_node][target_node] = 0;
     }
     Graph sampling_graph;
 
+    // map のキーとして pair を使うことは難しいらしいので, エッジを指定するようなベクトルを作って, そのベクトルを使用したい時に呼び出す形にしよう
+
     auto start = chrono::system_clock::now();
+    
+    auto start_flow = chrono::system_clock::now();
+
     double sum = 0;
 
-    auto start_ppr_calc = chrono::system_clock::now();
     for (int i = 0; i < connect_node_vec.size(); i++) {
         int node = connect_node_vec[i];
         int flow_rwer = rwer_flow_vec[i];
 
         auto start_ppr_calc_2 = chrono::system_clock::now();
 
-        // unordered_map<pair<int, int>, double, pairhash> edge_ppr = origin_graph.calc_edge_ppr_by_fora_flow(node, random_walk_num, flow_rwer);
-        origin_graph.calc_edge_ppr_by_fora_flow(edge_ppr, node, random_walk_num, flow_rwer);
+        unordered_map<int, double> ppr = origin_graph.calc_ppr_by_fora(node, random_walk_num);
+        for (auto& [source_node, target_node] : edge_vec) {
+            edge_ppr[source_node][target_node] += ppr[source_node] / origin_graph.get_degree(source_node) * flow_rwer;
+        }
         
         auto end_ppr_calc_2 = chrono::system_clock::now();
         auto dur_ppr_calc_2 = end_ppr_calc_2 - start_ppr_calc_2;
@@ -330,18 +242,13 @@ Graph Flow_Control(Graph& origin_graph, double rate, vector<int> connect_node_ve
         sum += microsec_ppr_calc_2 / pow(10, 6);
     }
 
-    cout << "PPR だけ Time: " << sum << endl;
-
-    auto end_ppr_calc = chrono::system_clock::now();
-    auto dur_ppr_calc = end_ppr_calc - start_ppr_calc;
-    auto microsec_ppr_calc = chrono::duration_cast<chrono::microseconds>(dur_ppr_calc).count();
-    cout << "エッジ PPR 計算に要した時間: " << microsec_ppr_calc / pow(10, 6) << "sec\n";
+    cout << "PPR Time: " << sum << endl;
 
     auto start_before_sort = chrono::system_clock::now();
 
     vector<pair <double, pair<int, int> > > tmp_vec;
-    for (auto& [edge, value] : edge_ppr) {
-        tmp_vec.push_back(make_pair(-value, make_pair(edge.first, edge.second)));
+    for (auto& [source_node, target_node] : edge_vec) {
+        tmp_vec.push_back(make_pair(-edge_ppr[source_node][target_node], make_pair(source_node, target_node)));
     }
     auto end_before_sort = chrono::system_clock::now();
     auto dur_before_sort = end_before_sort - start_before_sort;
@@ -360,7 +267,6 @@ Graph Flow_Control(Graph& origin_graph, double rate, vector<int> connect_node_ve
     auto start_add = chrono::system_clock::now();
 
     for (int i = 0; i < sampling_edge_num; i++) {
-        // sampling_graph.add_edge(tmp_vec[i].second.first, tmp_vec[i].second.second);
         sampling_graph.add_edge_no_multi(tmp_vec[i].second.first, tmp_vec[i].second.second);
     }
 
@@ -378,6 +284,85 @@ Graph Flow_Control(Graph& origin_graph, double rate, vector<int> connect_node_ve
 
     return sampling_graph;
 }
+
+// FORA 導入 (& PPR 計算の中に他のエッジ PPR 計算も含めて高速化したやつ) 導入後
+// Graph Flow_Control(Graph& origin_graph, double rate, vector<int> connect_node_vec, vector<int> rwer_flow_vec, int default_weight, int random_walk_num)
+// {
+//     // ランダム生成器
+//     StdRandNumGenerator gen;
+
+//     int edge_num = origin_graph.get_number_of_edges();
+//     int sampling_edge_num = (int) (edge_num * rate);
+//     int node_num = origin_graph.get_number_of_nodes();
+//     unordered_map<pair<int, int>, double, pairhash> edge_ppr;
+//     vector<pair<int, int> > edge_vec = origin_graph.get_edge_vec();
+//     for (auto& [source_node, target_node] : edge_vec) {
+//         edge_ppr[make_pair(source_node, target_node)] = 0;
+//     }
+//     Graph sampling_graph;
+
+//     auto start = chrono::system_clock::now();
+//     double sum = 0;
+
+//     for (int i = 0; i < connect_node_vec.size(); i++) {
+//         int node = connect_node_vec[i];
+//         int flow_rwer = rwer_flow_vec[i];
+
+//         auto start_ppr_calc_2 = chrono::system_clock::now();
+
+//         // unordered_map<pair<int, int>, double, pairhash> edge_ppr = origin_graph.calc_edge_ppr_by_fora_flow(node, random_walk_num, flow_rwer);
+//         origin_graph.calc_edge_ppr_by_fora_flow(edge_ppr, node, random_walk_num, flow_rwer);
+        
+//         auto end_ppr_calc_2 = chrono::system_clock::now();
+//         auto dur_ppr_calc_2 = end_ppr_calc_2 - start_ppr_calc_2;
+//         auto microsec_ppr_calc_2 = chrono::duration_cast<chrono::microseconds>(dur_ppr_calc_2).count();
+
+//         sum += microsec_ppr_calc_2 / pow(10, 6);
+//     }
+
+//     cout << "PPR だけ Time: " << sum << endl;
+
+//     auto start_before_sort = chrono::system_clock::now();
+
+//     vector<pair <double, pair<int, int> > > tmp_vec;
+//     for (auto& [edge, value] : edge_ppr) {
+//         tmp_vec.push_back(make_pair(-value, make_pair(edge.first, edge.second)));
+//     }
+//     auto end_before_sort = chrono::system_clock::now();
+//     auto dur_before_sort = end_before_sort - start_before_sort;
+//     auto microsec_before_sort = chrono::duration_cast<chrono::microseconds>(dur_before_sort).count();
+//     cout << "ソートの事前処理に要した時間: " << microsec_before_sort / pow(10, 6) << "sec\n";
+
+//     auto start_sort = chrono::system_clock::now();
+
+//     sort(tmp_vec.begin(), tmp_vec.end());
+
+//     auto end_sort = chrono::system_clock::now();
+//     auto dur_sort = end_sort - start_sort;
+//     auto microsec_sort = chrono::duration_cast<chrono::microseconds>(dur_sort).count();
+//     cout << "ソートに要した時間: " << microsec_sort / pow(10, 6) << "sec\n";
+
+//     auto start_add = chrono::system_clock::now();
+
+//     for (int i = 0; i < sampling_edge_num; i++) {
+//         // sampling_graph.add_edge(tmp_vec[i].second.first, tmp_vec[i].second.second);
+//         sampling_graph.add_edge_no_multi(tmp_vec[i].second.first, tmp_vec[i].second.second);
+//     }
+
+//     auto end_add = chrono::system_clock::now();
+//     auto dur_add = end_add - start_add;
+//     auto microsec_add = chrono::duration_cast<chrono::microseconds>(dur_add).count();
+//     cout << "エッジ追加に要した時間: " << microsec_add / pow(10, 6) << "sec\n";
+
+//     auto end = chrono::system_clock::now();
+//     auto dur = end - start;
+//     auto msec = chrono::duration_cast<chrono::milliseconds>(dur).count();
+//     // 要した時間をミリ秒（1/1000秒）に変換して表示
+//     cout << "FC_Time: " << msec / pow(10, 3) << "sec\n";
+//     cout << "Node: " << sampling_graph.get_number_of_nodes() << ", Edge: " << sampling_graph.get_number_of_edges() << endl;
+
+//     return sampling_graph;
+// }
 
 Graph Random_Edge(Graph& origin_graph, double rate)
 {

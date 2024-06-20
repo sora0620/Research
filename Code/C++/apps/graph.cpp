@@ -298,7 +298,7 @@ unordered_map<int, double> Graph::calc_ppr_by_fora(int src_id, int walk_count, d
     unordered_set<int> active_node_set;
     queue<int> active_node_queue;
     int src_degree = get_degree(src_id);
-    // unordered_set<int> node_list_set = get_node_set();
+    unordered_set<int> node_list_set = get_node_set();
     active_node_set.insert(src_id);
     active_node_queue.push(src_id);
     residue.emplace(src_id, 1);
@@ -340,18 +340,15 @@ unordered_map<int, double> Graph::calc_ppr_by_fora(int src_id, int walk_count, d
         }
     }
 
-    // for (int node : node_list_set) {
-    //     ppr[node];
-    // }
+    for (int node : node_list_set) {
+        ppr[node];
+    }
 
     return ppr;
 }
 
 // エッジ PPR 計算用関数
-void Graph::calc_edge_ppr_by_fora(unordered_map<pair<int, int>, double, pairhash>& edge_ppr, int src_id, int walk_count, double alpha, double r_max_coef) const {
-// unordered_map<pair <int, int>, double, pairhash> Graph::calc_edge_ppr_by_fora(int src_id, int walk_count, double alpha, double r_max_coef) const {
-// unordered_map<int, unordered_map <int, double> > Graph::calc_edge_ppr_by_fora(int src_id, int walk_count, double alpha, double r_max_coef) const {
-// unordered_map<int, double> Graph::calc_edge_ppr_by_fora(int src_id, int walk_count, double alpha, double r_max_coef) const {
+void Graph::calc_edge_ppr_by_fora(unordered_map<int, unordered_map <int, double> >& edge_ppr, int src_id, int walk_count, double alpha, double r_max_coef) const {
     /**
     * FORA の前処理？
     * 
@@ -367,9 +364,6 @@ void Graph::calc_edge_ppr_by_fora(unordered_map<pair<int, int>, double, pairhash
     unordered_map<int, double> residue;
     unordered_set<int> active_node_set;
     queue<int> active_node_queue;
-    // unordered_map<int, unordered_map <int, double> > edge_ppr;
-    // unordered_map<pair <int, int>, double, pairhash> edge_ppr;
-    // unordered_map<int, double> edge_ppr;
     int src_degree = get_degree(src_id);
     active_node_set.insert(src_id);
     active_node_queue.push(src_id);
@@ -385,9 +379,7 @@ void Graph::calc_edge_ppr_by_fora(unordered_map<pair<int, int>, double, pairhash
             for (int i = 0; i < node_degree; i++) {
                 int adj_id = adj_list[i];
                 int adj_degree = get_degree(adj_id);
-                edge_ppr[{node_id, adj_id}] += ((alpha * residue[node_id]) / node_degree); // エッジ PPR 計算
-                // edge_ppr[node_id][adj_id] += ((alpha * residue[node_id]) / node_degree); // エッジ PPR 計算
-                // edge_ppr[node_id] += ((alpha * residue[node_id]) / node_degree); // エッジ PPR 計算
+                edge_ppr[node_id][adj_id] += ((alpha * residue[node_id]) / node_degree); // エッジ PPR 計算
                 residue[adj_id] += (1 - alpha) * residue[node_id] / node_degree;
                 if ((residue[adj_id] > r_max_func(adj_degree, alpha, walk_count, r_max_coef)) && (active_node_set.count(adj_id) == 0)) {
                     active_node_set.insert(adj_id);
@@ -406,21 +398,46 @@ void Graph::calc_edge_ppr_by_fora(unordered_map<pair<int, int>, double, pairhash
         
         int walk_count_i = (int)ceil(r_val * walk_count);
 
-        for (int i = 0; i < walk_count_i; i++) {
-            int current_node_id = node_id;
-            int prev_node_id = current_node_id;
-            while ((double)rand()/RAND_MAX > alpha) {
-                if (current_node_id == -1) break;
-                current_node_id = get_random_adjacent(current_node_id);
-                if (current_node_id == -1) break;
-                edge_ppr[{prev_node_id, current_node_id}] += (double) 1 / walk_count_i;
-                // edge_ppr[prev_node_id][current_node_id] += 1;
-                // edge_ppr[prev_node_id] += 1;
+        vector<int> end_node_id_list = get_random_walk_end_nodes(node_id, walk_count_i, alpha);
+        for (int end_node_id : end_node_id_list) {
+            vector<int> adj_list = get_adj_list_list(end_node_id);
+            for (int adj_node : adj_list) {
+                int deg = get_degree(end_node_id);
+                edge_ppr[end_node_id][adj_node] += (double)r_val / walk_count_i / deg;
             }
         }
+
+        // for (int i = 0; i < walk_count_i; i++) {
+        //     int current_node_id = node_id;
+        //     int prev_node_id = current_node_id;
+        //     while ((double)rand()/RAND_MAX > alpha) {
+        //         if (current_node_id == -1) break;
+        //         current_node_id = get_random_adjacent(current_node_id);
+        //         if (current_node_id == -1) break;
+        //         edge_ppr[prev_node_id][current_node_id] += 1 / walk_count_i;
+        //     }
+        // }
+
+        // int walk_num = 0;
+        // unordered_map<int, unordered_map <int, int> > tmp_map;
+        // for (int i = 0; i < walk_count_i; i++) {
+        //     int current_node_id = node_id;
+        //     int prev_node_id = current_node_id;
+        //     while ((double)rand()/RAND_MAX > alpha) {
+        //         if (current_node_id == -1) break;
+        //         current_node_id = get_random_adjacent(current_node_id);
+        //         if (current_node_id == -1) break;
+        //         walk_num++;
+        //         tmp_map[prev_node_id][current_node_id] += 1;
+        //     }
+        // }
+        // for (auto& [source_node, m] : tmp_map) {
+        //     for (auto& [target_node, value] : m) {
+        //         edge_ppr[source_node][target_node] += r_val * value / walk_num;
+        //     }
+        // }
     }
 
-    // return edge_ppr;
     return;
 }
 

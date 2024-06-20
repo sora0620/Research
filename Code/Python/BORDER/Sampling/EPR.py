@@ -32,6 +32,5 @@ class EPR:
         time_end = time.perf_counter()
         tim = time_end - time_start
         print("EPR_Time  :", tim)
-        print("Sampling_Graph: ", self.sampled_graph)
         
         return self.sampled_graph

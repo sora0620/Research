@@ -85,25 +85,25 @@ def main():
     graph_name = "soc-Epinions1"
     sampling = "FC"
     border = "prefer" # 境界ノードの選択方法
-    sampling_num = 10 # データとして保存しておく回数
+    # sampling_num = 10 # データとして保存しておく回数
+    sampling_num = 1
     weight_node_num = 100
     weight_range = 100 # 境界ノードの重み幅
     default_weight = 50 # 基本の重み
+    border_ver = 1
     # rate_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
-    rate_list = [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09]
+    # rate_list = [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09]
+    rate_list = [0.1]
     
     origin_graph = Calc.read_origin_graph(graph_name)
     
     for i in range(sampling_num):
-        connect_node_list = []
-        if border == "random":
-            connect_node_list = Calc.select_border_node(origin_graph, weight_node_num) # ランダム選択
-        elif border == "prefer":
-            connect_node_list = Calc.select_border_prefer(origin_graph, weight_node_num) # 優先付着
+        connect_node_list = Calc.read_connect_list(graph_name, border, weight_node_num, border_ver)
         weight_dict = return_weight(origin_graph, connect_node_list, weight_range, default_weight)
         
         for rate in rate_list:
-            path = "../../../Sampling_Data/FC_{}/{}/ver_{}.adjlist".format(border, str(rate), i+1)
+            # path = "../../../Sampling_Data/FC_{}/{}/ver_{}.adjlist".format(border, str(rate), i+1)
+            path = "./tmp_save/python.adjlist"
             sampling_graph = return_sampling_graph(graph_name, origin_graph, connect_node_list, rate, sampling, weight_dict, default_weight, weight_node_num, weight_range)
             Calc.write_in_adjlist(sampling_graph, path)
     

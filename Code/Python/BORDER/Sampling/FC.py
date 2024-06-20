@@ -13,7 +13,7 @@ class FC:
     
     # default_weight の設定を追加後
     # 今までの通常のやつ
-    def flow_control_sampling(self, origin_graph, sampling_rate, connect_node_list, border_weight_dict, default_weigth):
+    def flow_control_sampling(self, origin_graph, sampling_rate, connect_node_list, weight_dict):
         time_start = time.perf_counter()
         
         if sampling_rate == 1:
@@ -41,29 +41,12 @@ class FC:
         
         print("PPR Calculated!")
         
-        # ある起点 (境界) ノードに対して、各エッジの RW 通過量を計算
-        def calc_rwer_flow(source_node):
-            flow_dict = {}
-            
-            for edge in edge_list:
-                flow_dict[edge] = ppr_dict[source_node][edge[0]] * ((1 - ALPHA) / ALPHA) / origin_graph.out_degree(edge[0])
-            
-            return flow_dict
-        
-        # 各境界ノードに関して, 個別で全エッジに対する RW 流量を取得
-        rw_flow_dict = {}
-        
-        for node in connect_node_list:
-            rw_flow_dict[node] = calc_rwer_flow(node)
-        
-        print("RW Flow Calculated!")
-        
-        # 外部グラフ接続時、各エッジを流れる RW 流量を計算
+        # 各エッジを流れる RW 流量を計算
         edge_weight = {}
         for edge in edge_list:
             edge_weight[edge] = 0
             for node in connect_node_list:
-                edge_weight[edge] += (border_weight_dict[node] - default_weigth) * rw_flow_dict[node][edge]
+                edge_weight[edge] += ppr_dict[node][edge[0]] * ((1 - ALPHA) / ALPHA) / origin_graph.out_degree(edge[0]) * weight_dict[node]
 
         edge_weight_sorted = sorted(edge_weight.items(), key=lambda x: x[1], reverse=True)
         sampling_edge_num = int(len(edge_list) * sampling_rate)
@@ -102,7 +85,7 @@ class FC:
         '''
     
     # 後々 PPR 結果を再利用する形にする場合や, 様々なサンプリングサイズに対して実験を行いたい際に, 何度も同じ PPR 計算をしてしまっているのでその効率化
-    def flow_control_sampling_2(self, origin_graph, sampling_rate, connect_node_list, border_weight_dict, default_weigth, ppr_dict):
+    def read_flow_control_sampling(self, origin_graph, sampling_rate, connect_node_list, weight_dict, ppr_dict):
         if sampling_rate == 1:
             return origin_graph
         time_start = time.perf_counter()
@@ -110,29 +93,11 @@ class FC:
         edge_list = list(origin_graph.edges())
         sampling_edge_num = int(len(edge_list) * sampling_rate)
         
-        # ある起点 (境界) ノードに対して、各エッジの RW 通過量を計算
-        def calc_rwer_flow(source_node):
-            flow_dict = {}
-            
-            for edge in edge_list:
-                flow_dict[edge] = ppr_dict[source_node][edge[0]] * ((1 - ALPHA) / ALPHA) / origin_graph.out_degree(edge[0])
-            
-            return flow_dict
-        
-        # 各境界ノードに関して, 個別で全エッジに対する RW 流量を取得
-        rw_flow_dict = {}
-        
-        for node in connect_node_list:
-            rw_flow_dict[node] = calc_rwer_flow(node)
-        
-        print("RW Flow Calculated!")
-        
-        # 外部グラフ接続時、各エッジを流れる RW 流量を計算
         edge_weight = {}
         for edge in edge_list:
             edge_weight[edge] = 0
             for node in connect_node_list:
-                edge_weight[edge] += (border_weight_dict[node] - default_weigth) * rw_flow_dict[node][edge]
+                edge_weight[edge] += ppr_dict[node][edge[0]] * ((1 - ALPHA) / ALPHA) / origin_graph.out_degree(edge[0]) * weight_dict[node]
 
         edge_weight_sorted = sorted(edge_weight.items(), key=lambda x: x[1], reverse=True)
         sampling_edge_list = []
@@ -148,9 +113,32 @@ class FC:
         print("Sampling_Graph: ", self.sampled_graph)
         
         return self.sampled_graph
+
+    # 複数のサンプリングサイズに対してサンプリングする場合, 毎回計算を行う必要はない
+    def read_rate_flow_control_sampling(self, origin_graph, sampling_rate_list, edge_weight_sorted):
+        time_start = time.perf_counter()
+        
+        edge_list = list(origin_graph.edges())
+
+        graph_list = []
+        for rate in sampling_rate_list:
+            if rate == 1:
+                graph_list.append(origin_graph)
+                continue
+            tmp_graph = nx.DiGraph()
+            sampling_edge_num = int(len(edge_list) * rate)
+            sampling_edge_list = [edge for edge, weihgt in edge_weight_sorted[:sampling_edge_num]]
+            tmp_graph.add_edges_from(sampling_edge_list)
+            graph_list.append(tmp_graph)
+        
+        time_end = time.perf_counter()
+        tim = time_end - time_start
+        print("FC_Time  :", tim)
+        
+        return graph_list
     
     # 境界ノードの優先付着がトップ (次数が高いノードを上から) のノードに対して FC を行う
-    def fc_top_prefer_sampling(self, origin_graph, sampling_rate, weight_node_num, default_weight, weight_range):
+    def fc_top_prefer_sampling(self, origin_graph, sampling_rate, weight_node_num, weight_dict):
         time_start = time.perf_counter()
         
         if sampling_rate == 1:
@@ -159,7 +147,6 @@ class FC:
         node_list = list(origin_graph)
         edge_list = list(origin_graph.edges())
         connect_node_list = []
-        weight_dict = {}
         deg_dict = {}
         for node in node_list:
             deg_dict[node] = origin_graph.in_degree(node)
@@ -169,15 +156,6 @@ class FC:
             connect_node_list.append(deg_dict_sorted[i][0])
         
         print("FC サンプリング, PPR 計算開始")
-        
-        def return_weight(origin_graph, connect_node_list, weight_range, default_weight):
-            weight_dict = {node: default_weight for node in list(origin_graph)}
-            for node in connect_node_list:
-                weight_dict[node] = random.randint(default_weight+1, weight_range)
-            
-            return weight_dict
-
-        weight_dict = return_weight(origin_graph, connect_node_list, weight_range, default_weight)
         
         # 任意の１ノードを起点とした PPR 辞書を取得
         def get_ppr(source_node):
@@ -196,29 +174,11 @@ class FC:
         
         print("PPR Calculated!")
         
-        # ある起点 (境界) ノードに対して、各エッジの RW 通過量を計算
-        def calc_rwer_flow(source_node):
-            flow_dict = {}
-            
-            for edge in edge_list:
-                flow_dict[edge] = ppr_dict[source_node][edge[0]] * ((1 - ALPHA) / ALPHA) / origin_graph.out_degree(edge[0])
-            
-            return flow_dict
-        
-        # 各境界ノードに関して, 個別で全エッジに対する RW 流量を取得
-        rw_flow_dict = {}
-        
-        for node in connect_node_list:
-            rw_flow_dict[node] = calc_rwer_flow(node)
-        
-        print("RW Flow Calculated!")
-        
-        # 外部グラフ接続時、各エッジを流れる RW 流量を計算
         edge_weight = {}
         for edge in edge_list:
             edge_weight[edge] = 0
             for node in connect_node_list:
-                edge_weight[edge] += (weight_dict[node] - default_weight) * rw_flow_dict[node][edge]
+                edge_weight[edge] += ppr_dict[node][edge[0]] * ((1 - ALPHA) / ALPHA) / origin_graph.out_degree(edge[0]) * weight_dict[node]
 
         edge_weight_sorted = sorted(edge_weight.items(), key=lambda x: x[1], reverse=True)
         sampling_edge_num = int(len(edge_list) * sampling_rate)

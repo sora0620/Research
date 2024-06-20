@@ -111,3 +111,12 @@ def write_in_adjlist(G, filename):
         f.write("\n")
         
     f.close()
+
+def read_connect_list(graph_name, type, weight_num, ver):
+    path = "./connect_node/{}/{}/{}/ver_{}.txt".format(graph_name, type, weight_num, ver)
+    return_list = []
+    with open(path, 'r') as f:
+        for l in f:
+            return_list = list(map(int, l.split()))
+    
+    return return_list
