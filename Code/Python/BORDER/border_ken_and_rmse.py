@@ -267,15 +267,16 @@ def main_ken():
 # FC と EPR の比較をちゃんとするために
 def average_ken():
     # ハイパーパラメータ
-    graph_name = "twitter"
+    graph_name = "soc-Epinions1"
     sampling_list = ["FC", "EPR", "PR_out"] # PR 系の比較
-    weight_node_num = 500 # 境界ノードの数
+    weight_node_num = 100 # 境界ノードの数
     weight_range = 100 # 境界ノードの重み幅
     default_weight = 50 # 基本の重み
     sampling_num = 3 # 何回の平均を取るか, 今 PPR は 3 回分しかないので 3 回にしよう
     border = "prefer"
-    rate_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+    # rate_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
     # rate_list = [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1]
+    rate_list = [0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008, 0.009, 0.01]
     color_list = ["red", "blue", "green"]
     
     # 描画用パラメータ
