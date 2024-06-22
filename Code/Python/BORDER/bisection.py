@@ -117,19 +117,19 @@ def in_rwer_flow(user_graph, select_border_edge_list):
     
     return in_rwer_dict
 
-def return_border_weight_dict(in_flow_dict, default_weight):
-    return_dict = {}
+def return_weight(connect_node_list, weight_range, default_weight):
+    weight_dict = {}
+    for node in connect_node_list:
+        weight_dict[node] = random.randint(default_weight+1, weight_range) - default_weight
     
-    for node, value in in_flow_dict.items():
-        return_dict[node] = value + default_weight
-    
-    return return_dict
+    print("境界ノードの重み計算完了")
+    return weight_dict
 
-def return_sampling_graph(graph, connect_node_list, sampling_rate, sampling_method, personalization_dict, default_weight):
+def return_sampling_graph(graph, connect_node_list, sampling_rate, sampling_method, personalization_dict):
     sampling_graph = nx.DiGraph()
     if sampling_method == "FC":
         obj = sp.FC()
-        sampling_graph = obj.flow_control_sampling(graph, sampling_rate, connect_node_list, personalization_dict, default_weight)
+        sampling_graph = obj.flow_control_sampling(graph, sampling_rate, connect_node_list, personalization_dict)
     elif sampling_method == "EPR":
         obj = sp.EPR()
         sampling_graph = obj.edge_pagerank_sampling(graph, sampling_rate)
@@ -188,7 +188,7 @@ def main_ken():
     # 重み設定等
     border_edge_list = select_border_edge(user_to_provider_edge_list, weight_node_num) # user to provider の境界エッジを, weight_node_num を満たすように設定して取得
     in_flow_dict = in_rwer_flow(user_graph, border_edge_list)
-    weight_dict = return_border_weight_dict(in_flow_dict, default_weight)
+    weight_dict = weight_dict(connect_node_list, in_flow_dict, default_weight)
     connect_node_list = list(in_flow_dict.keys())
     
     x_list_list = [rate_list] * len(sampling_list)

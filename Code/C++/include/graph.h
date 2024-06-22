@@ -104,6 +104,8 @@ class Graph
         // unordered_map<int, unordered_map <int, double> > calc_edge_ppr_by_fora_flow(int src_id, int walk_count, int flow_rwer, double alpha=0.15, double r_max_coef=1.0) const;
         // unordered_map<int, double> calc_edge_ppr_by_fora_flow(int src_id, int walk_count, int flow_rwer, double alpha=0.15, double r_max_coef=1.0) const;
 
+        void calc_edge_ppr_by_fora_flow_time(unordered_map<pair<int, int>, double, pairhash>& edge_ppr, int src_id, int walk_count, int flow_rwer, double alpha=0.15, double r_max_coef=1.0) const;
+
         int insert_edge(int src_id, int dst_id);
 
         int get_degree(int node_id) const {

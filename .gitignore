@@ -2,7 +2,6 @@
 # つけないと、.gitignore 以下にある同名のファイル全てを無視するらしいので注意
 
 /Dataset
-/Code/tullys
 .DS_Store
 practice.py
 env

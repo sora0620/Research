@@ -92,7 +92,7 @@ pair<Graph, double> return_sampling_graph(Graph& origin_graph, vector<int>& conn
 int main(int argc, char* argv[])
 {
     // ハイパーパラメータ
-    string graph_name = "soc-Epinions1";
+    string graph_name = "amazon0601";
     // vector<string> sampling_vec = {"RE", "SRW", "FC"};
     vector<string> sampling_vec = {"FC"};
     int weight_node_num = 100;

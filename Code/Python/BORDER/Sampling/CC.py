@@ -17,7 +17,7 @@ class CC:
         edge_list = list(origin_graph.edges())
         sampling_edge_num = int(len(edge_list) * sampling_rate)
 
-        path = "../../../Dataset/CC/{}.json".format(graph_name)
+        path = "../../../Dataset/Centrality/CC/{}.json".format(graph_name)
         cc_dict = {}
         
         with open(path, 'r') as f:
@@ -62,7 +62,7 @@ class CC:
         edge_list = list(origin_graph.edges())
         sampling_edge_num = int(len(edge_list) * sampling_rate)
 
-        path = "../../../Dataset/CC/{}.json".format(graph_name)
+        path = "../../../Dataset/Centrality/CC/{}.json".format(graph_name)
         cc_dict = {}
         
         with open(path, 'r') as f:
@@ -105,7 +105,7 @@ class CC:
         edge_list = list(origin_graph.edges())
         sampling_edge_num = int(len(edge_list) * sampling_rate)
 
-        path = "../../../Dataset/CC/{}.json".format(graph_name)
+        path = "../../../Dataset/Centrality/CC/{}.json".format(graph_name)
         cc_dict = {}
         
         with open(path, 'r') as f:

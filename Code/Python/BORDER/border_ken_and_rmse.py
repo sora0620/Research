@@ -99,7 +99,7 @@ def return_edge_weight(graph, connect_node_list, weight_dict, ppr_dict):
     
     return edge_weight_sorted
 
-def return_sampling_graph(graph_name, graph, sampling_rate, sampling_method, connect_node_list):
+def return_sampling_graph(graph_name, graph, sampling_rate, sampling_method, connect_node_list, weight_dict):
     weight_node_num = len(connect_node_list)
     sampling_graph = nx.DiGraph()
     if sampling_method == "RE":
@@ -113,7 +113,7 @@ def return_sampling_graph(graph_name, graph, sampling_rate, sampling_method, con
         sampling_graph = obj.fc_prefer_sampling(graph, graph_name, sampling_rate)
     elif sampling_method == "FC_top_prefer":
         obj = sp.FC()
-        sampling_graph = obj.fc_top_prefer_sampling(graph, sampling_rate, weight_node_num)
+        sampling_graph = obj.fc_top_prefer_sampling(graph, sampling_rate, weight_node_num, weight_dict)
     elif sampling_method == "BC_in_out":
         obj = sp.BC()
         sampling_graph = obj.betweenness_centrality_in_out_sampling(graph, graph_name, sampling_rate)
@@ -210,26 +210,25 @@ def return_ppr_sum_rank(origin_graph, sampling_graph, connect_node_list, weight_
 
 def main_ken():
     # ハイパーパラメータ
-    graph_name = "twitter"
+    graph_name = "soc-Epinions1"
     # sampling_list = ["RE", "FC", "BC_in_out", "BC_in", "BC_out", "EBC"] # BC 系の比較
     # sampling_list = ["RE", "FC", "FC_random", "FC_prefer", "FC_top_prefer"] # FC 系の比較
     # sampling_list = ["RE", "FC", "CC_in_out", "CC_in", "CC_out"] # CC 系の比較
     # sampling_list = ["FC", "EPR", "PR_out"] # PR 系の比較
-    sampling_list = ["PR_out"]
+    sampling_list = ["RE", "FC", "FC_random", "FC_prefer"]
     weight_node_num = 100
     weight_range = 100 # 境界ノードの重み幅
     default_weight = 50 # 基本の重み
     border = "prefer"
     border_ver = 1
-    rate_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
-    # rate_list = [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1]
-    save_file = "../pic/result.png"
+    # rate_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+    rate_list = [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1]
+    save_file = "../pic/result_FC.png"
     
     # 描画用パラメータ
     # color_list = ["olive", "orangered", "gold", "black", "blue", "red"] # BC & PR
     # color_list = ["olive", "orangered", "gold", "black", "blue"] # FC & CC
-    # color_list = ["red", "blue", "green"]
-    color_list = ["red", "blue"]
+    color_list = ["red", "blue", "green", "gold"]
     main_title = "ケンドールの順位相関係数_{}_重み個数{}_幅{}".format(border, weight_node_num, weight_range)
     x_label = "sampling size"
     y_label = "value"
@@ -256,7 +255,7 @@ def main_ken():
                 # sampling_graph = Calc.read_graph(path)
                 
                 # # 普通にサンプリング
-                sampling_graph = return_sampling_graph(graph_name, origin_graph, rate, sampling, connect_node_list)
+                sampling_graph = return_sampling_graph(graph_name, origin_graph, rate, sampling, connect_node_list, weight_dict)
                 ppr_sum_origin, ppr_sum_sampling = return_ppr_sum_rank(origin_graph, sampling_graph, connect_node_list, weight_dict)
                 kendall_list.append(Calc.calc_kendall(ppr_sum_origin, ppr_sum_sampling))
         
@@ -304,7 +303,7 @@ def average_ken():
                     kendall_list[j].append(Calc.calc_kendall(ppr_sum_origin, ppr_sum_sampling))
             else:
                 for j, rate in enumerate(rate_list):
-                    sampling_graph = return_sampling_graph(graph_name, origin_graph, rate, sampling, connect_node_list)
+                    sampling_graph = return_sampling_graph(graph_name, origin_graph, rate, sampling, connect_node_list, weight_dict)
                     ppr_sum_origin, ppr_sum_sampling = return_ppr_sum_rank(origin_graph, sampling_graph, connect_node_list, weight_dict)
                     kendall_list[j].append(Calc.calc_kendall(ppr_sum_origin, ppr_sum_sampling))
         for k in range(len(rate_list)):
@@ -315,5 +314,5 @@ def average_ken():
     make_plt_ken(x_list_list, y_list_list, x_lim=rate_list[-1], x_label=x_label, y_label=y_label, title=main_title, label_list=sampling_list, color_list=color_list, save_path=save_file)
 
 if __name__ == "__main__":
-    average_ken()
-    # main_ken()
+    # average_ken()
+    main_ken()
